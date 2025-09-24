@@ -55,7 +55,7 @@ module.exports = {
 	
 				if (nick) {
 					msgAuthor.setNickname(nick)
-						.then(console.log(`${msgAuthor.user.username} changed their nickname to ${nick}`))
+						.then(console.log(`${msgAuthor.user.username} changed their nickname to ${nick}: "${message.content}"`))
 						.catch(console.error);
 				}
 
@@ -83,7 +83,7 @@ module.exports = {
 
 				if (speakingOrder[0] && speakingOrder[1] && nick && youre && (channelOrder[0] === channelOrder[1])) {
 					speakingOrder[1].setNickname(nick)
-						.then(console.log(`${speakingOrder[0].user.username} changed ${speakingOrder[1].user.username}'s nickname to ${nick}`))
+						.then(console.log(`${speakingOrder[0].user.username} changed ${speakingOrder[1].user.username}'s nickname to ${nick}: "${message.content}"`))
 						.catch(console.error);
 					youre = false;
 				}
