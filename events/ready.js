@@ -10,14 +10,14 @@ module.exports = {
 
 		let speakingOrder = ["", ""]; //speakingOrder[0] is first person, speakingOrder[1] is the person before
 		let channelOrder = ["", ""]; // are these two people in the same channel
-		const imMatch1 = /\b(i'm )(.+)/
-		const imMatch2 = /\b(im )(.+)/
-		const imMatch3 = /\b(i am )(.+)/
-		const youreMatch1 = /\b(youre )(.+)/
-		const youreMatch2 = /\b(you're )(.+)/
-		const youreMatch3 = /\b(ur )(.+)/
-		const youreMatch4 = /\b(u r )(.+)/
-		const youreMatch5 = /\b(you are )(.+)/
+		const imMatch1 = /\b(i'm )(.+)/i;
+		const imMatch2 = /\b(im )(.+)/i;
+		const imMatch3 = /\b(i am )(.+)/i;
+		const youreMatch1 = /\b(youre )(.+)/i;
+		const youreMatch2 = /\b(you're )(.+)/i;
+		const youreMatch3 = /\b(ur )(.+)/i;
+		const youreMatch4 = /\b(u r )(.+)/i;
+		const youreMatch5 = /\b(you are )(.+)/i;
 
 		client.on('messageCreate', async (message) => {
 			try {
@@ -25,7 +25,7 @@ module.exports = {
 
 				await client.guilds.fetch(message.guildId);
 				msgGuild = await client.guilds.cache.get(message.guildId); 		// as a Guild
-				msgAuthor = message.member; 	// as a GuildMember
+				msgAuthor = await message.member; 	// as a GuildMember
 	
 				if (msgAuthor == client.user.id) { // this shouldn't happen but anyways
 					console.log("replied to own bot");
@@ -41,48 +41,48 @@ module.exports = {
 					channelOrder = channelOrder.slice(0,2);
 				}
 
-				msg = message.content.toLowerCase();
+				msg = await message.content;
 	
 				if (msg.match(imMatch1)) {
-					nick = msg.match(imMatch1)[2].slice(0,32);
+					nick = await msg.match(imMatch1)[2].slice(0,32);
 				}
 				else if (msg.match(imMatch2)) {
-					nick = msg.match(imMatch2)[2].slice(0,32);
+					nick = await msg.match(imMatch2)[2].slice(0,32);
 				}
 				else if (msg.match(imMatch3)) {
-					nick = msg.match(imMatch3)[2].slice(0,32);
+					nick = await msg.match(imMatch3)[2].slice(0,32);
 				}
 	
 				if (nick) {
-					msgAuthor.setNickname(nick)
+					await msgAuthor.setNickname(nick)
 						.then(console.log(`${msgAuthor.user.username} changed their nickname to ${nick}: "${message.content}"`))
 						.catch(console.error);
 				}
 
 				// want to make the first person who spoke change the name of the second
 				else if (msg.match(youreMatch1)) {
-					nick = msg.match(youreMatch1)[2].slice(0,32);
+					nick = await msg.match(youreMatch1)[2].slice(0,32);
 					youre = true;
 				}
 				else if (msg.match(youreMatch2)) {
-					nick = msg.match(youreMatch2)[2].slice(0,32);
+					nick = await msg.match(youreMatch2)[2].slice(0,32);
 					youre = true;
 				}
 				else if (msg.match(youreMatch3)) {
-					nick = msg.match(youreMatch3)[2].slice(0,32);
+					nick = await msg.match(youreMatch3)[2].slice(0,32);
 					youre = true;
 				}
 				else if (msg.match(youreMatch4)) {
-					nick = msg.match(youreMatch4)[2].slice(0,32);
+					nick = await msg.match(youreMatch4)[2].slice(0,32);
 					youre = true;
 				}
 				else if (msg.match(youreMatch5)) {
-					nick = msg.match(youreMatch5)[2].slice(0,32);
+					nick = await msg.match(youreMatch5)[2].slice(0,32);
 					youre = true;
 				}
 
 				if (speakingOrder[0] && speakingOrder[1] && nick && youre && (channelOrder[0] === channelOrder[1])) {
-					speakingOrder[1].setNickname(nick)
+					await speakingOrder[1].setNickname(nick)
 						.then(console.log(`${speakingOrder[0].user.username} changed ${speakingOrder[1].user.username}'s nickname to ${nick}: "${message.content}"`))
 						.catch(console.error);
 					youre = false;
@@ -92,20 +92,19 @@ module.exports = {
 				if (message.reference) {
 					let replynick = "";
 					if (message.content.toLowerCase().startsWith("youre ")) {
-						replynick = message.content.substring(6,38);
+						replynick = await message.content.substring(6,38);
 					}
 					else if (message.content.toLowerCase().startsWith("you're ")) {
-						replynick = message.content.substring(7,39);
+						replynick = await message.content.substring(7,39);
 					}
 					else if (message.content.toLowerCase().startsWith("ur ")) {
-						replynick = message.content.substring(3,35);
+						replynick = await message.content.substring(3,35);
 					}
 					if (replynick) {
 						const repliedmsg = await message.fetchReference();
-						console.log(repliedmsg);
-						const target = msgGuild.members.cache.get(repliedmsg.author.id);
+						const target = await msgGuild.members.cache.get(repliedmsg.author.id);
 						if (target) {
-							target.setNickname(replynick)
+							await target.setNickname(replynick)
 								.then(console.log(`${msgAuthor.user.username} changed ${target.user.username}'s nickname to ${replynick}`))
 								.catch(console.error);
 						}
