@@ -1,4 +1,6 @@
 const { Events } = require('discord.js');
+const readline = require('readline');
+const fs = require('fs');
 
 module.exports = {
 	name: Events.ClientReady,
@@ -18,6 +20,23 @@ module.exports = {
 		const youreMatch3 = /\b(ur )(.+)/i;
 		const youreMatch4 = /\b(u r )(.+)/i;
 		const youreMatch5 = /\b(you are )(.+)/i;
+
+		const excludeFilePath = 'exclude.txt';
+		const excludes = [];
+
+		// list for users who wish to be excluded
+		if (fs.existsSync(excludeFilePath)) {
+			const rl = readline.createInterface({
+				input: fs.createReadStream('exclude.txt')
+			});
+			rl.on('line', (user) => {
+				console.log(`Added ${user} to exclude list`)
+				excludes.push(user);
+			})
+		}
+		else {
+			console.log("exclude.txt doesn't exist in the root directory - consider making one if anyone doesn't want to be affected!");
+		}
 
 		client.on('messageCreate', async (message) => {
 			try {
@@ -46,6 +65,9 @@ module.exports = {
 				// reply check
 				if (message.reference) {
 					let nick = "";
+					const repliedmsg = await message.fetchReference();
+					const target = await msgGuild.members.cache.get(repliedmsg.author.id);
+
 					if (msg.match(youreMatch1)) {
 						nick = await msg.match(youreMatch1)[2].slice(0,32);
 					}
@@ -61,14 +83,14 @@ module.exports = {
 					else if (msg.match(youreMatch5)) {
 						nick = await msg.match(youreMatch5)[2].slice(0,32);
 					}
-					if (nick) {
-						const repliedmsg = await message.fetchReference();
-						const target = await msgGuild.members.cache.get(repliedmsg.author.id);
-						if (target) {
-							await target.setNickname(nick)
-								.then(console.log(`${msgAuthor.user.username} changed ${target.user.username}'s nickname to ${nick}`))
-								.catch(console.error);
-						}
+
+					if (target && excludes.includes(target.user.username)) {
+						console.log(`BLOCKED - ${target.user.username} is in exclude.txt: ${message.content}`);
+					}
+					else if (nick && target) {
+						await target.setNickname(nick)
+							.then(console.log(`${msgAuthor.user.username} changed ${target.user.username}'s nickname to ${nick}`))
+							.catch(console.error);
 					}
 				}
 				else {
@@ -81,8 +103,10 @@ module.exports = {
 					else if (msg.match(imMatch3)) {
 						nick = await msg.match(imMatch3)[2].slice(0,32);
 					}
-		
-					if (nick) {
+					if (msgAuthor && excludes.includes(msgAuthor.user.username)) {
+						console.log(`BLOCKED - ${msgAuthor.user.username} is in exclude.txt: ${message.content}`);
+					}
+					else if (nick) {
 						await msgAuthor.setNickname(nick)
 							.then(console.log(`${msgAuthor.user.username} changed their nickname to ${nick}: "${message.content}"`))
 							.catch(console.error);
@@ -109,8 +133,10 @@ module.exports = {
 						nick = await msg.match(youreMatch5)[2].slice(0,32);
 						youre = true;
 					}
-	
-					if (speakingOrder[0] && speakingOrder[1] && nick && youre && (channelOrder[0] === channelOrder[1])) {
+					if (speakingOrder[1] && excludes.includes(speakingOrder[1].user.username)) {
+						console.log(`BLOCKED - ${speakingOrder[1].user.username} is in exclude.txt: ${message.content}`);
+					}
+					else if (speakingOrder[0] && speakingOrder[1] && nick && youre && (channelOrder[0] === channelOrder[1])) {
 						await speakingOrder[1].setNickname(nick)
 							.then(console.log(`${speakingOrder[0].user.username} changed ${speakingOrder[1].user.username}'s nickname to ${nick}: "${message.content}"`))
 							.catch(console.error);
