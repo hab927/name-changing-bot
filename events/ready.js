@@ -94,26 +94,8 @@ module.exports = {
 					}
 				}
 				else {
-					if (msg.match(imMatch1)) {
-						nick = await msg.match(imMatch1)[2].slice(0,32);
-					}
-					else if (msg.match(imMatch2)) {
-						nick = await msg.match(imMatch2)[2].slice(0,32);
-					}
-					else if (msg.match(imMatch3)) {
-						nick = await msg.match(imMatch3)[2].slice(0,32);
-					}
-					if (msgAuthor && excludes.includes(msgAuthor.user.username)) {
-						console.log(`BLOCKED - ${msgAuthor.user.username} is in exclude.txt: ${message.content}`);
-					}
-					else if (nick) {
-						await msgAuthor.setNickname(nick)
-							.then(console.log(`${msgAuthor.user.username} changed their nickname to ${nick}: "${message.content}"`))
-							.catch(console.error);
-					}
-	
 					// want to make the first person who spoke change the name of the second
-					else if (msg.match(youreMatch1)) {
+					if (msg.match(youreMatch1)) {
 						nick = await msg.match(youreMatch1)[2].slice(0,32);
 						youre = true;
 					}
@@ -143,7 +125,23 @@ module.exports = {
 						youre = false;
 					}
 				}
-	
+				if (msg.match(imMatch1)) {
+					nick = await msg.match(imMatch1)[2].slice(0,32);
+				}
+				else if (msg.match(imMatch2)) {
+					nick = await msg.match(imMatch2)[2].slice(0,32);
+				}
+				else if (msg.match(imMatch3)) {
+					nick = await msg.match(imMatch3)[2].slice(0,32);
+				}
+				if (msgAuthor && excludes.includes(msgAuthor.user.username)) {
+					console.log(`BLOCKED - ${msgAuthor.user.username} is in exclude.txt: ${message.content}`);
+				}
+				else if (nick && !youre) {
+					await msgAuthor.setNickname(nick)
+						.then(console.log(`${msgAuthor.user.username} changed their nickname to ${nick}: "${message.content}"`))
+						.catch(console.error);
+				}
 			}
 			catch(error) {
 				console.log(error);
