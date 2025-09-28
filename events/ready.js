@@ -12,11 +12,11 @@ module.exports = {
 
 		let speakingOrder = ["", ""]; //speakingOrder[0] is first person, speakingOrder[1] is the person before
 		let channelOrder = ["", ""]; // are these two people in the same channel
-		const imMatch1 = /\b(i'm )(.+)/i;
+		const imMatch1 = /\b(i['\u2019]m )(.+)/i;
 		const imMatch2 = /\b(im )(.+)/i;
 		const imMatch3 = /\b(i am )(.+)/i;
 		const youreMatch1 = /\b(youre )(.+)/i;
-		const youreMatch2 = /\b(you're )(.+)/i;
+		const youreMatch2 = /\b(you['\u2019]re )(.+)/i;
 		const youreMatch3 = /\b(ur )(.+)/i;
 		const youreMatch4 = /\b(u r )(.+)/i;
 		const youreMatch5 = /\b(you are )(.+)/i;
