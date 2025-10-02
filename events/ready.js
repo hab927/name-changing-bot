@@ -122,7 +122,6 @@ module.exports = {
 						await speakingOrder[1].setNickname(nick)
 							.then(console.log(`${speakingOrder[0].user.username} changed ${speakingOrder[1].user.username}'s nickname to ${nick}: "${message.content}"`))
 							.catch(console.error);
-						youre = false;
 					}
 				}
 				if (msg.match(imMatch1)) {
