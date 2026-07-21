@@ -37,7 +37,7 @@ module.exports = {
 			console.log("exclude.txt doesn't exist in the root directory - consider making one if anyone doesn't want to be affected!");
 		}
 
-		const guilds = await client.guilds.fetch(message.guildId);	// servers this great bot is in
+		const guilds = await client.guilds.fetch();	// servers this great bot is in
 		guilds.forEach(g => {
 			serverMap.set(g.id, [[], []]); 								// the array will contain info (SpeakingOrder & ChannelOrder)
 		});
@@ -46,7 +46,7 @@ module.exports = {
 			try {
 				let youre = false;
 
-				msgGuild = await guilds.cache.get(message.guildId); 		// server that the message got sent in
+				msgGuild = await client.guilds.cache.get(message.guildId); 		// server that the message got sent in
 				msgAuthor = await message.member; 							// who wrote the message?
 	
 				if (msgAuthor == client.user.id) { // this shouldn't happen but anyways
@@ -97,8 +97,12 @@ module.exports = {
 					}
 					else if (nick && target) {
 						await target.setNickname(nick)
-							.then(console.log(`${msgAuthor.user.username} changed ${target.user.username}'s nickname to ${nick}`))
-							.catch(console.error);
+							.then(console.log(`${msgGuild.name} -- ${msgAuthor.user.username} changed ${target.user.username}'s nickname to "${nick}": "${message.content}"`))
+							.catch ((err) => {
+								if (err) {
+									console.log("Yeah this pseron is cool... (owner shield block)");
+								}
+							});
 					}
 				}
 				else {
@@ -123,13 +127,19 @@ module.exports = {
 						nick = await msg.match(youreMatch5)[2].slice(0,32);
 						youre = true;
 					}
-					if (speakingOrder[1] && excludes.includes(speakingOrder[1].user.username)) {
-						console.log(`BLOCKED - ${speakingOrder[1].user.username} is in exclude.txt: ${message.content}`);
-					}
 					else if (speakingOrder[0] && speakingOrder[1] && nick && youre && (channelOrder[0] === channelOrder[1])) {
-						await speakingOrder[1].setNickname(nick)
-							.then(console.log(`${speakingOrder[0].user.username} changed ${speakingOrder[1].user.username}'s nickname to ${nick}: "${message.content}"`))
-							.catch(console.error);
+						if (excludes.includes(speakingOrder[1].user.username)) {
+							console.log(`BLOCKED - ${speakingOrder[1].user.username} is in exclude.txt: ${message.content}`);
+						}
+						else {
+							await speakingOrder[1].setNickname(nick)
+								.then(console.log(`${msgGuild.name} -- ${speakingOrder[0].user.username} changed ${speakingOrder[1].user.username}'s nickname to "${nick}": "${message.content}"`))
+								.catch ((err) => {
+									if (err) {
+										console.log("Yeah this pseron is cool... (owner shield block)");
+									}
+								});
+						}
 					}
 				}
 				if (msg.match(imMatch1)) {
@@ -146,8 +156,12 @@ module.exports = {
 				}
 				else if (nick && !youre) {
 					await msgAuthor.setNickname(nick)
-						.then(console.log(`${msgAuthor.user.username} changed their nickname to ${nick}: "${message.content}"`))
-						.catch(console.error);
+						.then(console.log(`${msgGuild.name} -- ${msgAuthor.user.username} changed their nickname to ${nick}: "${message.content}"`))
+						.catch ((err) => {
+							if (err) {
+								console.log("Yeah this pseron is cool... (owner shield block)");
+							}
+						});
 				}
 			}
 			catch(error) {
