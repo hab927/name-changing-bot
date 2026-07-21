@@ -8,10 +8,9 @@ module.exports = {
 	async execute(client) {
 		console.log(`Ready! Logged in as ${client.user.tag}`);
 
-		let msgAuthor, msgGuild;
+		let msgAuthor, msgChannel;
 
-		let speakingOrder = ["", ""]; //speakingOrder[0] is first person, speakingOrder[1] is the person before
-		let channelOrder = ["", ""]; // are these two people in the same channel
+		let serverMap = new Map();
 		const imMatch1 = /\b(i['\u2019]m )(.+)/i;
 		const imMatch2 = /\b(im )(.+)/i;
 		const imMatch3 = /\b(i am )(.+)/i;
@@ -38,29 +37,38 @@ module.exports = {
 			console.log("exclude.txt doesn't exist in the root directory - consider making one if anyone doesn't want to be affected!");
 		}
 
+		const guilds = await client.guilds.fetch(message.guildId);	// servers this great bot is in
+		guilds.forEach(g => {
+			serverMap.set(g.id, [[], []]); 								// the array will contain info (SpeakingOrder & ChannelOrder)
+		});
+
 		client.on('messageCreate', async (message) => {
 			try {
 				let youre = false;
 
-				await client.guilds.fetch(message.guildId);
-				msgGuild = await client.guilds.cache.get(message.guildId); 		// as a Guild
-				msgAuthor = await message.member; 	// as a GuildMember
+				msgGuild = await guilds.cache.get(message.guildId); 		// server that the message got sent in
+				msgAuthor = await message.member; 							// who wrote the message?
 	
 				if (msgAuthor == client.user.id) { // this shouldn't happen but anyways
-					console.log("replied to own bot");
 					return;
 				}
-	
+
 				let nick = "";
+				msg = await message.content;
+
+				let guildInfo = serverMap.get(msgGuild.id);
+				let speakingOrder = guildInfo[0];
+				let channelOrder = guildInfo[1];
+
+				// everything beyond this point should be handled per-server now
 
 				if (speakingOrder[0] != msgAuthor) { // new person speaking (moshi moshi?)
 					speakingOrder.unshift(msgAuthor);
-					channelOrder.unshift(message.guildId);
-					speakingOrder = speakingOrder.slice(0,2);
-					channelOrder = channelOrder.slice(0,2);
+					channelOrder.unshift(message.channelId);
+					guildInfo[0] = speakingOrder.slice(0,2);
+					guildInfo[1] = channelOrder.slice(0,2);
+					serverMap.set(msgGuild.id, guildInfo); 		// set the new info on the map
 				}
-
-				msg = await message.content;
 
 				// reply check
 				if (message.reference) {
@@ -134,7 +142,7 @@ module.exports = {
 					nick = await msg.match(imMatch3)[2].slice(0,32);
 				}
 				if (msgAuthor && excludes.includes(msgAuthor.user.username)) {
-					console.log(`BLOCKED - ${msgAuthor.user.username} is in exclude.txt: ${message.content}`);
+					// console.log(`BLOCKED - ${msgAuthor.user.username} is in exclude.txt: ${message.content}`);
 				}
 				else if (nick && !youre) {
 					await msgAuthor.setNickname(nick)
