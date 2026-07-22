@@ -37,6 +37,9 @@ module.exports = {
 			console.log("exclude.txt doesn't exist in the root directory - consider making one if anyone doesn't want to be affected!");
 		}
 
+		let youreMatches = [youreMatch1, youreMatch2, youreMatch3, youreMatch4, youreMatch5];
+		let imMatches = [imMatch1, imMatch2, imMatch3];
+
 		const guilds = await client.guilds.fetch();	// servers this great bot is in
 		guilds.forEach(g => {
 			serverMap.set(g.id, [[], []]); 								// the array will contain info (SpeakingOrder & ChannelOrder)
@@ -47,7 +50,7 @@ module.exports = {
 				let youre = false;
 
 				msgGuild = await client.guilds.cache.get(message.guildId); 		// server that the message got sent in
-				msgAuthor = await message.member; 							// who wrote the message?
+				msgAuthor = await message.member; 								// who wrote the message?
 	
 				if (msgAuthor == client.user.id) { // this shouldn't happen but anyways
 					return;
@@ -61,6 +64,8 @@ module.exports = {
 				let channelOrder = guildInfo[1];
 
 				// everything beyond this point should be handled per-server now
+
+				message
 
 				if (speakingOrder[0] != msgAuthor) { // new person speaking (moshi moshi?)
 					speakingOrder.unshift(msgAuthor);
@@ -76,20 +81,10 @@ module.exports = {
 					const repliedmsg = await message.fetchReference();
 					const target = await msgGuild.members.cache.get(repliedmsg.author.id);
 
-					if (msg.match(youreMatch1)) {
-						nick = await msg.match(youreMatch1)[2].slice(0,32);
-					}
-					else if (msg.match(youreMatch2)) {
-						nick = await msg.match(youreMatch2)[2].slice(0,32);
-					}
-					else if (msg.match(youreMatch3)) {
-						nick = await msg.match(youreMatch3)[2].slice(0,32);
-					}
-					else if (msg.match(youreMatch4)) {
-						nick = await msg.match(youreMatch4)[2].slice(0,32);
-					}
-					else if (msg.match(youreMatch5)) {
-						nick = await msg.match(youreMatch5)[2].slice(0,32);
+					for (const ym of youreMatches) {
+						if (msg.match(ym)) {
+							nick = await msg.match(ym)[2].slice(0,32);
+						}
 					}
 
 					if (target && excludes.includes(target.user.username)) {
@@ -107,27 +102,14 @@ module.exports = {
 				}
 				else {
 					// want to make the first person who spoke change the name of the second
-					if (msg.match(youreMatch1)) {
-						nick = await msg.match(youreMatch1)[2].slice(0,32);
-						youre = true;
+					for (const ym of youreMatches) {
+						if (msg.match(ym)) {
+							nick = await msg.match(ym)[2].slice(0,32);
+							youre = true;
+						}
 					}
-					else if (msg.match(youreMatch2)) {
-						nick = await msg.match(youreMatch2)[2].slice(0,32);
-						youre = true;
-					}
-					else if (msg.match(youreMatch3)) {
-						nick = await msg.match(youreMatch3)[2].slice(0,32);
-						youre = true;
-					}
-					else if (msg.match(youreMatch4)) {
-						nick = await msg.match(youreMatch4)[2].slice(0,32);
-						youre = true;
-					}
-					else if (msg.match(youreMatch5)) {
-						nick = await msg.match(youreMatch5)[2].slice(0,32);
-						youre = true;
-					}
-					else if (speakingOrder[0] && speakingOrder[1] && nick && youre && (channelOrder[0] === channelOrder[1])) {
+
+					if (speakingOrder[0] && speakingOrder[1] && nick && youre && (channelOrder[0] === channelOrder[1])) {
 						if (excludes.includes(speakingOrder[1].user.username)) {
 							console.log(`BLOCKED - ${speakingOrder[1].user.username} is in exclude.txt: ${message.content}`);
 						}
@@ -142,14 +124,11 @@ module.exports = {
 						}
 					}
 				}
-				if (msg.match(imMatch1)) {
-					nick = await msg.match(imMatch1)[2].slice(0,32);
-				}
-				else if (msg.match(imMatch2)) {
-					nick = await msg.match(imMatch2)[2].slice(0,32);
-				}
-				else if (msg.match(imMatch3)) {
-					nick = await msg.match(imMatch3)[2].slice(0,32);
+				
+				for (const im of imMatches) {
+					if (msg.match(im)) {
+						nick = await msg.match(im)[2].slice(0,32);
+					}
 				}
 				if (msgAuthor && excludes.includes(msgAuthor.user.username)) {
 					// console.log(`BLOCKED - ${msgAuthor.user.username} is in exclude.txt: ${message.content}`);
